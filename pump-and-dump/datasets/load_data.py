@@ -13,7 +13,7 @@ TOKEN = os.environ["INVEST_READ_TOKEN"]
 def load_figi(rel_path: str, update_figi: bool = False):
     """
     Скачивание списка акций и их сохранение в удобном формате
-    :param rel_path:
+    :param rel_path: путь куда сохранятся акции
     :param update_figi: нужно ли обновить список акций
     :return:
     """
@@ -23,6 +23,7 @@ def load_figi(rel_path: str, update_figi: bool = False):
             shares = [share for share in shares if share.currency == 'rub' and not share.for_qual_investor_flag]
         figi_to_ticker: dict[str, str] = {share.figi: share.ticker for share in shares}
         ticker_to_figi: dict[str, str] = {share.ticker: share.figi for share in shares}
+        os.makedirs(os.path.dirname(rel_path), exist_ok=True)
         with open(f"{rel_path}/figi_to_ticker.txt", 'w') as f:
             json.dump(figi_to_ticker, f)
         with open(f"{rel_path}/ticker_to_figi.txt", 'w') as f:
@@ -46,11 +47,12 @@ def download_zip_archive(figi: str, year: int, url: str, rel_path: str, minimum_
     :param figi: figi акции
     :param year: год за который качаются акции
     :param rel_path: путь для сохранения zip-архивов
-    :param minimum_year: с какого пути не читать акции
+    :param minimum_year: с какого года не читать акции
     :return:
     """
     if year < minimum_year:
         return 0
+    os.makedirs(os.path.dirname(rel_path), exist_ok=True)
     file_name = f"{rel_path}/{figi}_{year}.zip"
     curl_command = f'curl -s --location "{url}?figi={figi}&year={year}" -H "Authorization:' \
                    f' Bearer {TOKEN}" -o "{file_name}" -w "%{{http_code}}\\n"'
@@ -76,7 +78,7 @@ def download_zip_archive(figi: str, year: int, url: str, rel_path: str, minimum_
 
 def main():
     rel_path = "../../data/figi"
-    figi, figi_to_ticker, ticker_to_figi = load_figi(rel_path, update_figi=True)
+    figi, figi_to_ticker, ticker_to_figi = load_figi(rel_path)
     current_year = datetime.now().year
     url = "https://invest-public-api.tinkoff.ru/history-data"
     rel_path = "../../data/zip_data"
