@@ -20,8 +20,14 @@ def extract_archive(ticker: str, figi: str, year: str, input_path: str, output_p
     zip_file = files[0]
     dataset_folder = f"{output_path}/{ticker}/{year}/"
     os.makedirs(os.path.dirname(dataset_folder), exist_ok=True)
-    with ZipFile(zip_file, "r") as zip_ref:
-        zip_ref.extractall(dataset_folder)
+    try:
+        with ZipFile(zip_file, "r") as zip_ref:
+                zip_ref.extractall(dataset_folder)
+    except ValueError:
+        rmtree(dataset_folder)
+        print(f"Bad file {zip_file} for ticker {ticker} and year {year}")
+        return pd.DataFrame()
+
 
     year_history = [pd.read_csv(dataset_path, header=None,
                                 names=['id', 'time', 'open', 'close', 'high', 'low', 'volume'],
@@ -69,5 +75,6 @@ def main(tickers: Sequence[str], path_to_dict: str = "../../data/figi/ticker_to_
 
 if __name__ == "__main__":
     path_to_ticker = "../../data/figi/ticker_to_figi.txt"
-    all_tickers = get_ticker_to_figi(path_to_ticker).keys()
+    all_tickers = list(get_ticker_to_figi(path_to_ticker).keys())
+    all_tickers.remove("PIKK")
     main(all_tickers)
