@@ -20,6 +20,7 @@ def load_figi(rel_path: str, update_figi: bool = False):
     if not os.path.exists(f"{rel_path}/figi.txt") or update_figi:
         with Client(TOKEN) as client:
             shares = client.instruments.shares().instruments
+            shares = [share for share in shares if share.currency == 'rub' and not share.for_qual_investor_flag]
         figi_to_ticker: dict[str, str] = {share.figi: share.ticker for share in shares}
         ticker_to_figi: dict[str, str] = {share.ticker: share.figi for share in shares}
         with open(f"{rel_path}/figi_to_ticker.txt", 'w') as f:
@@ -75,10 +76,10 @@ def download_zip_archive(figi: str, year: int, url: str, rel_path: str, minimum_
 
 def main():
     rel_path = "../../data/figi"
-    figi, figi_to_ticker, ticker_to_figi = load_figi(rel_path)
+    figi, figi_to_ticker, ticker_to_figi = load_figi(rel_path, update_figi=True)
     current_year = datetime.now().year
     url = "https://invest-public-api.tinkoff.ru/history-data"
-    rel_path = rel_path = "../../data/zip_data"
+    rel_path = "../../data/zip_data"
     for current_figi in tqdm(figi):
         download_zip_archive(current_figi, current_year, url, rel_path)
 
