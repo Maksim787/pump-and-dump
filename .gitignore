@@ -1,3 +1,6 @@
-data/figi
-data/zip_data
+private/
+cache/
+data/
+
+__pycache__
 .idea
