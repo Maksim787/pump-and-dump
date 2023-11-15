@@ -14,7 +14,7 @@ from .download_shares_info import download_clean_shares
 from .utils import load_config, RateLimiter, limited_gather
 
 
-MAX_YEARS = 20
+MAX_YEARS = 5
 N_REQUESTS_PER_MINUTE = 29
 
 
@@ -81,5 +81,5 @@ def download_shares_candles(verbose: bool, force_compute: bool):
                 longer_history_mask = await limited_gather(*tasks, rate_limiter=rate_limiter)
                 download_shares = [share for share, mask in zip(download_shares, longer_history_mask) if mask]
                 shares = existing_shares + download_shares
-                print(f'{year}: {len(shares)} shares: {shares}')
+                print(f'{year}: {len(shares)} shares: {[share.ticker for share in shares]}')
     asyncio.run(_get_history_data())

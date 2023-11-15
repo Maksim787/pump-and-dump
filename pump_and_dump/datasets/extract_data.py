@@ -1,6 +1,7 @@
 from glob import glob
 import json
 import pandas as pd
+from pathlib import Path
 from shutil import rmtree
 from tqdm import tqdm
 from typing import Sequence
@@ -22,12 +23,11 @@ def extract_archive(ticker: str, figi: str, year: str, input_path: str, output_p
     os.makedirs(os.path.dirname(dataset_folder), exist_ok=True)
     try:
         with ZipFile(zip_file, "r") as zip_ref:
-                zip_ref.extractall(dataset_folder)
+            zip_ref.extractall(dataset_folder)
     except ValueError:
         rmtree(dataset_folder)
         print(f"Bad file {zip_file} for ticker {ticker} and year {year}")
         return pd.DataFrame()
-
 
     year_history = [pd.read_csv(dataset_path, header=None,
                                 names=['id', 'time', 'open', 'close', 'high', 'low', 'volume'],
@@ -43,6 +43,7 @@ def extract_archive(ticker: str, figi: str, year: str, input_path: str, output_p
 
 
 def get_ticker_to_figi(path: str):
+    print(path)
     if not os.path.exists(path):
         print("Don't find anything data, loading...")
         load_data()
@@ -51,11 +52,14 @@ def get_ticker_to_figi(path: str):
     return ticker_to_figi
 
 
-def main(tickers: Sequence[str], path_to_dict: str = "../../data/figi/ticker_to_figi.txt",
+def main(tickers: Sequence[str], path_to_dict: str = None,
          min_year: int = 2022, max_year: int = 2023):
-    path_to_datasets = "../../data/datasets"
-    os.makedirs(os.path.dirname(path_to_datasets), exist_ok=True)
-
+    print(os.getcwd())
+    if path_to_dict is None:
+        path_to_dict = os.path.join(os.getcwd(), Path("../../data/figi/ticker_to_figi.txt").parent)
+    path_to_datasets = os.path.join(os.getcwd(), Path("../../data/datasets").parent)
+    # os.makedirs(os.path.dirname(path_to_datasets), exist_ok=True)
+    print(os.path.dirname(path_to_datasets))
     ticker_to_figi = get_ticker_to_figi(path_to_dict)
 
     ticker_to_figi = {key: value for key, value in ticker_to_figi.items() if key in tickers}
